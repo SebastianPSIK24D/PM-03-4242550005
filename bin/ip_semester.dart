@@ -10,6 +10,9 @@ const int sksMaks = 6;
 // Bobot nilai dalam huruf
 const Map<String, int> bobotNilai = {'A': 4, 'B': 3, 'C': 2, 'D': 1, 'E': 0};
 
+// Mata kuliah dengan bobot di bawah ini dianggap perlu diperbaiki.
+const int bobotMinimal = 2;
+
 /// Mengubah nilai huruf menjadi bobot.
 int bobot(String huruf) {
   final int? nilai = bobotNilai[huruf]; // null jika huruf tidak dikenal
@@ -47,6 +50,38 @@ String bacaBaris(String label) {
   return (stdin.readLineSync() ?? '').trim(); // String? -> ganti ''
 }
 
+/// Menjumlahkan SKS semua mata kuliah.
+int totalSks(List<MataKuliah> data) {
+  return data.fold<int>(0, (jumlah, m) => jumlah + m.sks);
+}
+
+/// Menghitung IP = total (SKS x bobot) dibagi total SKS.
+double hitungIp(List<MataKuliah> data) {
+  final int sks = totalSks(data);
+  if (sks == 0) return 0;
+  final int mutu = data.fold<int>(
+    0,
+    (jumlah, m) => jumlah + m.sks * bobot(m.nilai),
+  );
+  return mutu / sks;
+}
+
+/// Menentukan predikat dari IP (skala contoh).
+String predikat(double ip) {
+  if (ip >= 3.5) return 'Sangat Memuaskan';
+  if (ip >= 3.0) return 'Memuaskan';
+  if (ip >= 2.0) return 'Cukup';
+  return 'Kurang';
+}
+
+/// Mengambil nama mata kuliah yang bobotnya di bawah [bobotMinimal].
+List<String> mkPerluDiperbaiki(List<MataKuliah> data) {
+  return data
+      .where((m) => bobot(m.nilai) < bobotMinimal)
+      .map((m) => m.nama)
+      .toList();
+}
+
 void main() {
   final List<MataKuliah> data = [];
 
@@ -65,5 +100,16 @@ void main() {
     }
   }
 
-  print('Data tersimpan: ${data.length} mata kuliah');
+  if (data.isEmpty) {
+    print('Belum ada data.');
+    return;
+  }
+
+  final double ip = hitungIp(data);
+  final List<String> perbaiki = mkPerluDiperbaiki(data);
+  print('Total SKS : ${totalSks(data)}');
+  print('IP        : ${ip.toStringAsFixed(2)} (${predikat(ip)})');
+  if (perbaiki.isNotEmpty) {
+    print('Perlu diperbaiki: ${perbaiki.join(', ')}');
+  }
 }
