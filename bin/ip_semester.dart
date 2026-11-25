@@ -13,6 +13,12 @@ const Map<String, int> bobotNilai = {'A': 4, 'B': 3, 'C': 2, 'D': 1, 'E': 0};
 // Mata kuliah dengan bobot di bawah ini dianggap perlu diperbaiki.
 const int bobotMinimal = 2;
 
+// Lebar kolom tabel KHS.
+const int lebarNama = 24;
+const int lebarSks = 5;
+const int lebarNilai = 6;
+const int lebarTabel = lebarNama + lebarSks + lebarNilai;
+
 /// Mengubah nilai huruf menjadi bobot.
 int bobot(String huruf) {
   final int? nilai = bobotNilai[huruf]; // null jika huruf tidak dikenal
@@ -80,6 +86,38 @@ List<String> mkPerluDiperbaiki(List<MataKuliah> data) {
       .where((m) => bobot(m.nilai) < bobotMinimal)
       .map((m) => m.nama)
       .toList();
+}
+
+/// Mencetak KHS. Jika [urutkan] true, nilai tertinggi tampil lebih dulu.
+void cetakKhs(List<MataKuliah> data, {bool urutkan = false}) {
+  final List<MataKuliah> daftar = [...data]; // salinan, data asli tetap
+  if (urutkan) {
+    // Fungsi pembanding: bobot yang lebih besar didahulukan.
+    daftar.sort((a, b) => bobot(b.nilai).compareTo(bobot(a.nilai)));
+  }
+
+  print(
+    '${'Mata Kuliah'.padRight(lebarNama)}'
+    '${'SKS'.padLeft(lebarSks)}'
+    '${'Nilai'.padLeft(lebarNilai)}',
+  );
+  print('-' * lebarTabel);
+  for (final m in daftar) {
+    print(
+      '${m.nama.padRight(lebarNama)}'
+      '${m.sks.toString().padLeft(lebarSks)}'
+      '${m.nilai.padLeft(lebarNilai)}',
+    );
+  }
+  print('-' * lebarTabel);
+
+  final double ip = hitungIp(data);
+  final List<String> perbaiki = mkPerluDiperbaiki(data);
+  print('Total SKS : ${totalSks(data)}');
+  print('IP        : ${ip.toStringAsFixed(2)} (${predikat(ip)})');
+  if (perbaiki.isNotEmpty) {
+    print('Perlu diperbaiki: ${perbaiki.join(', ')}');
+  }
 }
 
 void main() {
